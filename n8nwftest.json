@@ -1,0 +1,114 @@
+{
+  "name": "UMKM Generate V1 (Webhook ➜ Upload ➜ Callback, compatible)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "umkm/generate",
+        "responseMode": "onReceived"
+      },
+      "id": "WebhookGenerate",
+      "name": "Webhook - Generate",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [280, 300]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            { "name": "job_id", "value": "={{ $json.body.job_id }}" },
+            { "name": "user_id", "value": "={{ $json.body.user_id }}" }
+          ]
+        }
+      },
+      "id": "KeepJob",
+      "name": "Keep Job Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [520, 180]
+    },
+    {
+      "parameters": {
+        "url": "https://file.io",
+        "method": "POST",
+        "sendBinaryData": true,
+        "binaryPropertyName": "image",
+        "responseFormat": "json"
+      },
+      "id": "UploadFile",
+      "name": "Upload to file.io",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [520, 420]
+    },
+    {
+      "parameters": {
+        "mode": "mergeByPosition"
+      },
+      "id": "MergeNode",
+      "name": "Merge (Job + Upload)",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [760, 300]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            { "name": "job_id", "value": "={{ $json.job_id }}" },
+            { "name": "status", "value": "done" },
+            {
+              "name": "output_url",
+              "value": "={{ $json.link || $json.url || ($json.data && ($json.data.link || $json.data.url)) || null }}"
+            }
+          ],
+          "json": [
+            { "name": "meta", "value": "{\"provider\":\"file.io\"}" }
+          ]
+        }
+      },
+      "id": "BuildBody",
+      "name": "Build Callback Body",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:3000/api/webhooks/n8n",
+        "method": "POST",
+        "jsonParameters": true,
+        "headerParametersUi": {
+          "parameter": [
+            { "name": "x-n8n-secret", "value": "REPLACE_ME" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "bodyParametersJson": "={{ $json }}"
+      },
+      "id": "CallbackNext",
+      "name": "Callback to Next",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1240, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Generate": {
+      "main": [
+        [{ "node": "Keep Job Fields", "type": "main", "index": 0 }],
+        [{ "node": "Upload to file.io", "type": "main", "index": 0 }]
+      ]
+    },
+    "Keep Job Fields": { "main": [[{ "node": "Merge (Job + Upload)", "type": "main", "index": 0 }]] },
+    "Upload to file.io": { "main": [[{ "node": "Merge (Job + Upload)", "type": "main", "index": 1 }]] },
+    "Merge (Job + Upload)": { "main": [[{ "node": "Build Callback Body", "type": "main", "index": 0 }]] },
+    "Build Callback Body": { "main": [[{ "node": "Callback to Next", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": {},
+  "pinData": {}
+}

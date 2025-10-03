@@ -35,7 +35,7 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">Daftar</h1>
           <p className="text-sm text-gray-500">
-            Buat akun baru untuk mengakses seluruh fitur UMKM Kits Studio.
+            Buat akun baru untuk mengakses seluruh fitur UMKM KitStudio.
           </p>
         </div>
         {errorMessage && (

@@ -36,7 +36,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">Masuk</h1>
           <p className="text-sm text-gray-500">
-            Gunakan email dan kata sandi Anda untuk mengakses dashboard UMKM Kits.
+            Gunakan email dan kata sandi Anda untuk mengakses dashboard UMKM KitStudio.
           </p>
         </div>
         {errorMessage && (

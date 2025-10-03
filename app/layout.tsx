@@ -9,8 +9,8 @@ const fontSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "UMKM Kits Studio",
-  description: "Platform operasional UMKM Kits untuk mengelola proyek dan layanan AI.",
+  title: "UMKM KitStudio",
+  description: "Platform operasional UMKM KitStudio untuk mengelola proyek dan layanan AI.",
 };
 
 export default function RootLayout({

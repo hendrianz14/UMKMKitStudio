@@ -1,6 +1,6 @@
-# UMKM Kits Lite
+# UMKM KitStudio Lite
 
-V1 dari aplikasi UMKM Kits Studio yang dibangun dengan Next.js 14 (App Router), Tailwind CSS, dan integrasi Supabase untuk autentikasi dan data.
+V1 dari aplikasi UMKM KitStudio yang dibangun dengan Next.js 14 (App Router), Tailwind CSS, dan integrasi Supabase untuk autentikasi dan data.
 
 ## Fitur utama
 
@@ -47,3 +47,12 @@ pnpm build
 ```
 
 Deploy di Vercel atau platform pilihan Anda dengan variabel lingkungan yang sama.
+
+## QA V1
+- Login email/password → redirect /dashboard
+- Login Google → /auth/callback → /dashboard
+- /dashboard SSR no-cache (dynamic + revalidate=0)
+- Onboarding menyimpan ke `profiles.user_id`
+- GET /api/diag/dashboard mengembalikan `{ user: true, profile: {...} }`
+- GET /auth/signout logout dan kembali ke halaman login
+- Middleware memblokir /dashboard saat belum login
