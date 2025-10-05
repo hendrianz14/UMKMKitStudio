@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supaServer } from "@/lib/supabase-server";
+import { getFirebaseUploadAndPublicUrls } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs"; // memastikan FormData stream aman
 
@@ -22,20 +23,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Credits habis" }, { status: 402 });
     }
 
-    // Ambil file gambar
+    // Ambil form
     const formData = await req.formData();
     const file = formData.get("image");
+    const type = String(formData.get("type") ?? "product");
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "File image wajib" }, { status: 400 });
     }
 
-    // Buat row "results" status queued (id = uuid)
+    // Buat job queued
     const { data: job, error: insertErr } = await sb
       .from("results")
       .insert({
         user_id: user.id,
         status: "queued",
         input_name: (file as File).name ?? "image",
+        meta: { type }
       })
       .select("id")
       .single();
@@ -43,6 +46,15 @@ export async function POST(req: Request) {
     if (insertErr || !job) {
       return NextResponse.json({ error: insertErr?.message || "Gagal membuat job" }, { status: 500 });
     }
+
+    // Siapkan target object untuk OUTPUT (hasil akhir) di Firebase
+    function extFromName(name?: string | null) {
+      const m = String(name ?? "").toLowerCase().match(/\.(png|jpe?g|webp|gif|bmp|tiff|heic|heif)$/i);
+      return m ? m[0] : ".png";
+    }
+    const contentType = (file as File).type || "image/png";
+    const objectPath = `results/${user.id}/${job.id}${extFromName((file as File).name)}`;
+    const { uploadUrl, publicUrl } = await getFirebaseUploadAndPublicUrls(objectPath, contentType);
 
     // Kirim ke n8n webhook
     const webhook = process.env.N8N_WEBHOOK_URL;
@@ -53,11 +65,13 @@ export async function POST(req: Request) {
     payload.append("user_id", user.id);
     payload.append("job_id", job.id);
     payload.append("image", file, (file as File).name);
+    payload.append("type", type);
+    // instruksi Firebase untuk n8n:
+    payload.append("firebase_upload_url", uploadUrl);
+    payload.append("firebase_public_url", publicUrl);
+    payload.append("firebase_content_type", contentType);
 
-  // Opsional debug querystring:
-  // const webhookWithQuery = `${webhook}?user_id=${encodeURIComponent(user.id)}&job_id=${encodeURIComponent(job.id)}`;
-  // const r = await fetch(webhookWithQuery, { method: "POST", body: payload });
-  const r = await fetch(webhook, { method: "POST", body: payload });
+    const r = await fetch(webhook, { method: "POST", body: payload });
     if (!r.ok) {
       // Tandai gagal
       await sb.from("results").update({ status: "error" }).eq("id", job.id);

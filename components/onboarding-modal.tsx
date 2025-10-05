@@ -7,6 +7,7 @@ interface OnboardingModalProps {
   initialName: string;
   initialRole: string;
   action: (formData: FormData) => Promise<any>;
+  onClose: () => void;
 }
 
 export default function OnboardingModal({
@@ -14,6 +15,7 @@ export default function OnboardingModal({
   initialName,
   initialRole,
   action,
+  onClose,
 }: OnboardingModalProps) {
   const [open, setOpen] = useState(needsOnboarding);
   const [userType, setUserType] = useState("personal");
@@ -42,6 +44,7 @@ export default function OnboardingModal({
       setLoading(false);
     } else {
       setOpen(false);
+      onClose();
     }
   };
 
@@ -52,6 +55,7 @@ export default function OnboardingModal({
     formData.append("onboarding_completed", "false");
     const result = await action(formData);
     setOpen(false);
+    onClose();
   };
 
   return (

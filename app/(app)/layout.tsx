@@ -14,7 +14,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </ul>
         </nav>
       </aside>
-      <main className="px-4 md:px-8 py-16">{children}</main>
+  <main className="container mx-auto max-w-6xl px-4 md:px-8 py-10">{children}</main>
     </div>
   );
 }

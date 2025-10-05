@@ -1,14 +1,16 @@
 import { redirect } from "next/navigation";
-import { supaServer } from "@/lib/supabase-server";
+import { Database } from "@/lib/database.types";
 import OnboardingModal from "@/components/onboarding-modal";
+import DashboardClient from "./DashboardClient";
+import { supaServer } from "@/lib/supabase-server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 async function saveOnboarding(formData: FormData) {
 	"use server";
-	const sb = supaServer();
-	const { data: { user } } = await sb.auth.getUser();
+	const supabase = supaServer();
+	const { data: { user } } = await supabase.auth.getUser();
 	if (!user) return { error: "Not authenticated" };
 
 	const user_type = String(formData.get("user_type") ?? "personal");
@@ -16,59 +18,40 @@ async function saveOnboarding(formData: FormData) {
 	const business_type = String(formData.get("business_type") ?? "");
 	const info_source = String(formData.get("info_source") ?? "");
 
-	const { error } = await sb
+	const { error } = await supabase
 		.from("profiles")
 		.update({ user_type, main_goal, business_type, info_source, onboarding_completed_at: new Date().toISOString() })
-		.eq("user_id", user.id);
+		.eq("id", user.id); // 'id' is the primary key, which is also the user_id
 
 	if (error) return { error: error.message };
 }
 
 export default async function DashboardPage() {
-	const sb = supaServer();
-	const { data: { user } } = await sb.auth.getUser();
-	if (!user) redirect("/(auth)/login");
+	const supabase = supaServer();
+	const { data: { user } } = await supabase.auth.getUser();
+	if (!user) redirect("/sign-in"); // Redirect to /sign-in
 
-	const { data: profile } = await sb
+	const { data: profile, error: profileError } = await supabase
 		.from("profiles")
 		.select("*")
-		.eq("user_id", user.id)
-		.maybeSingle();
+		.eq("id", user.id) // 'id' is the primary key, which is also the user_id
+		.maybeSingle<Database['public']['Tables']['profiles']['Row']>();
+
+	if (profileError) {
+		console.error("Error fetching profile:", profileError);
+		// Depending on desired behavior, you might redirect or show a generic error
+		// For now, we'll proceed with a null profile if there's an error
+		// This might mean needsOnboarding will be true, which is a safe fallback
+	}
 
 	const needsOnboarding = !profile || !profile.onboarding_completed_at;
 
 	return (
-		<section className="py-10">
-			<div className="flex items-center justify-between">
-				<h1 className="text-2xl font-bold">Dashboard</h1>
-				<form action={async () => {
-					"use server";
-					const sb = supaServer();
-					await sb.auth.signOut();
-					redirect("/sign-in");
-				}}>
-					<button type="submit" className="text-sm text-red-600 underline underline-offset-4">Sign out</button>
-				</form>
-			</div>
-
-					<div className="mt-6 space-y-2">
-						<p><span className="font-semibold">User ID:</span> {user.id}</p>
-						<p><span className="font-semibold">Tipe Pengguna:</span> {profile?.user_type ?? "(belum diisi)"}</p>
-						<p><span className="font-semibold">Tujuan Utama:</span> {profile?.main_goal ?? "(belum diisi)"}</p>
-						<p><span className="font-semibold">Jenis Usaha:</span> {profile?.business_type ?? "(belum diisi)"}</p>
-						<p><span className="font-semibold">Sumber Info:</span> {profile?.info_source ?? "(belum diisi)"}</p>
-						<div className="flex gap-3 mt-4">
-							<a href="/generate" className="rounded-xl bg-brand text-white px-4 py-2">Generate</a>
-							<a href="/history" className="rounded-xl bg-gray-700 text-white px-4 py-2">History</a>
-						</div>
-					</div>
-
-					<OnboardingModal
-						needsOnboarding={needsOnboarding}
-						initialName={profile?.full_name ?? ""}
-						initialRole={profile?.user_type ?? ""}
-						action={saveOnboarding}
-					/>
-		</section>
+		<DashboardClient
+			user={user}
+			profile={profile}
+			needsOnboarding={needsOnboarding}
+			saveOnboarding={saveOnboarding}
+		/>
 	);
 }

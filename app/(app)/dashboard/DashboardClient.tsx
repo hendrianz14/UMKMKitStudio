@@ -1,266 +1,204 @@
 "use client";
 
-import { type FormEvent, useEffect, useMemo, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { User } from "@supabase/supabase-js";
+import { Database } from "@/lib/database.types";
+import OnboardingModal from "@/components/onboarding-modal";
+import { useEffect, useState } from "react";
+import useSWR from "swr";
+import Link from "next/link";
 
-type ProfileRow = {
-  id: string;
-  user_id: string;
-  full_name: string | null;
-  onboarding_completed_at: string | null;
-  created_at: string;
-  user_type?: string | null;
-  main_goal?: string | null;
-  business_type?: string | null;
-  info_source?: string | null;
-};
+type Profile = Database['public']['Tables']['profiles']['Row'];
+type Wallet = Database['public']['Tables']['credits_wallet']['Row'];
+type LedgerEntry = Database['public']['Tables']['credits_ledger']['Row'];
+type Project = Database['public']['Tables']['projects']['Row'];
 
-type ProjectRow = {
-  id: string;
-  name: string;
-  status: string;
-  created_at: string;
-  updated_at: string | null;
-};
+interface DashboardSummary {
+  wallet: Wallet;
+  jobs_this_week: number;
+  credits_used_this_week: number;
+  free_pack: { credits: number; days_left: number };
+}
 
-type CreditTransactionRow = {
-  id: string;
-  amount: number;
-  balance_after: number | null;
-  description: string | null;
-  created_at: string;
-  direction: "in" | "out" | string;
-};
-
-type AIJobRow = {
-  id: string;
-  type: string;
-  status: string;
-  created_at: string;
-  input_summary: string | null;
-  output_summary: string | null;
-};
-
-type DashboardClientProps = {
-  profile: ProfileRow | null;
-  projects: ProjectRow[];
-  creditTransactions: CreditTransactionRow[];
-  jobs: AIJobRow[];
-  currentBalance: number;
+interface OnboardingModalProps {
   needsOnboarding: boolean;
-};
-
-const statusBadgeClasses: Record<string, string> = {
-  draft: "bg-gray-100 text-gray-700",
-  active: "bg-emerald-100 text-emerald-700",
-  completed: "bg-blue-100 text-blue-700",
-  failed: "bg-red-100 text-red-700",
-};
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(value);
+  initialName: string;
+  initialRole: string;
+  action: (formData: FormData) => Promise<{ error: string } | undefined>;
+  onClose: () => void;
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
+interface DashboardClientProps {
+  user: User;
+  profile: Profile | null;
+  needsOnboarding: boolean;
+  saveOnboarding: (formData: FormData) => Promise<{ error: string } | undefined>;
 }
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function DashboardClient({
+  user,
   profile,
-  projects,
-  creditTransactions,
-  jobs,
-  currentBalance,
   needsOnboarding,
+  saveOnboarding,
 }: DashboardClientProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(needsOnboarding);
-  const [payload, setPayload] = useState({
-    user_type: profile?.user_type ?? "personal",
-    main_goal: profile?.main_goal ?? "",
-    business_type: profile?.business_type ?? "",
-    info_source: profile?.info_source ?? ""
-  });
+  const { data: summary, error: summaryError } = useSWR<DashboardSummary>("/api/dashboard/summary", fetcher);
+  const { data: projectsData, error: projectsError } = useSWR<{ projects: Project[]; nextCursor: string | null }>("/api/projects", fetcher);
+  const { data: historyData, error: historyError } = useSWR<{ history: LedgerEntry[] }>("/api/credits/history", fetcher);
+
+  const [isModalOpen, setIsModalOpen] = useState(needsOnboarding);
 
   useEffect(() => {
-    setShowOnboarding(needsOnboarding);
+    setIsModalOpen(needsOnboarding);
   }, [needsOnboarding]);
 
-  const totalProjects = projects.length;
-  const activeJobs = useMemo(() => jobs.filter((job) => job.status !== "completed"), [jobs]);
+  if (summaryError || projectsError || historyError) {
+    console.error("Dashboard data fetch error:", summaryError || projectsError || historyError);
+    return <div className="text-red-500">Error loading dashboard data.</div>;
+  }
 
-  const handleSignOut = async () => {
-    await fetch("/api/auth/signout", { method: "POST" });
-    router.push("/sign-in");
-    router.refresh();
-  };
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
-
-    const body = JSON.stringify(payload);
-    startTransition(async () => {
-      const response = await fetch("/api/profile/onboarding/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-      });
-
-      if (!response.ok) {
-        const { error: message } = await response.json().catch(() => ({ error: "Terjadi kesalahan" }));
-        setError(message ?? "Terjadi kesalahan");
-        return;
-      }
-
-      setShowOnboarding(false);
-      router.refresh();
-    });
-  };
+  const projects = projectsData?.projects || [];
+  const history = historyData?.history || [];
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <div>
-            <p className="text-sm text-slate-500">Selamat datang kembali</p>
-            <h1 className="text-xl font-semibold text-slate-900">
-              {profile?.full_name || "UMKM KitStudio"}
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Info usaha dihapus, gunakan info lain jika perlu */}
-            <button
-              onClick={handleSignOut}
-              className="rounded-md border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
-            >
-              Keluar
-            </button>
-          </div>
+    <section className="container mx-auto px-6 py-10">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Dashboard AI Anda</h1>
+        {/* Placeholder for i18n and Feedback buttons */}
+        <div className="flex items-center gap-2">
+          <button className="px-3 py-1 rounded-md bg-slate-700 text-white text-sm">ID</button>
+          <button className="px-3 py-1 rounded-md bg-slate-800 text-slate-400 text-sm">EN</button>
+          <button className="px-3 py-1 rounded-md bg-blue-600 text-white text-sm">Feedback</button>
+          {/* Avatar will be handled by Nav component */}
         </div>
-      </header>
+      </div>
+      <p className="mt-2 text-slate-400">
+        Pantau penggunaan kredit, kelola project dan pekerjaan AI anda.
+      </p>
 
-      <main className="mx-auto max-w-5xl space-y-8 px-6 py-10">
-        {/* ...section lain tetap, hapus semua penggunaan field lama di UI... */}
-      </main>
-
-      {showOnboarding && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 px-4">
-          <form
-            className="w-full max-w-lg rounded-xl bg-white p-6 shadow-lg"
-            onSubmit={e => {
-              e.preventDefault();
-              setError(null);
-              startTransition(async () => {
-                const formData = new FormData();
-                formData.append("user_type", payload.user_type);
-                formData.append("main_goal", payload.main_goal);
-                formData.append("business_type", payload.business_type);
-                formData.append("info_source", payload.info_source);
-                formData.append("onboarding_completed", "true");
-                formData.append("onboarding_completed_at", new Date().toISOString());
-                const response = await fetch("/api/profile/onboarding/save", {
-                  method: "POST",
-                  body: formData,
-                });
-                if (!response.ok) {
-                  const { error: message } = await response.json().catch(() => ({ error: "Terjadi kesalahan" }));
-                  setError(message ?? "Terjadi kesalahan");
-                  return;
-                }
-                setShowOnboarding(false);
-                router.refresh();
-              });
-            }}
-          >
-            <h2 className="text-2xl font-bold mb-2 text-gray-900">Kenalan dulu yuk!</h2>
-            <p className="mb-6 text-gray-500 text-sm">Jawaban kamu membantu kami menyesuaikan rekomendasi template dan otomasi konten.</p>
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">Tipe pengguna</label>
-              <div className="flex gap-2">
-                <button type="button" className={`flex-1 py-2 rounded ${payload.user_type === 'personal' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setPayload(prev => ({ ...prev, user_type: 'personal' }))}>Personal</button>
-                <button type="button" className={`flex-1 py-2 rounded ${payload.user_type === 'team' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setPayload(prev => ({ ...prev, user_type: 'team' }))}>Tim</button>
+      {/* Statistic Cards */}
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Kredit aktif */}
+        <div className="bg-slate-800 p-6 rounded-lg shadow-soft border border-slate-700">
+          <h3 className="text-lg font-semibold text-slate-300">Kredit aktif</h3>
+          {summary ? (
+            <>
+              <p className="text-5xl font-bold text-white mt-2">{summary.wallet.balance}</p>
+              <div className="mt-4 flex items-center gap-2">
+                <span className="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">{summary.wallet.plan}</span>
+                <span className="text-sm text-slate-400">Kedaluarsa pada {new Date(summary.wallet.expires_at || "").toLocaleDateString()}</span>
               </div>
-            </div>
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">Tujuan utama pakai UMKM Kits</label>
-              <select
-                value={payload.main_goal}
-                onChange={e => setPayload(prev => ({ ...prev, main_goal: e.target.value }))}
-                className="w-full px-3 py-2 border rounded"
-                required
-              >
-                <option value="" disabled>Pilih tujuan utama</option>
-                <option value="promosi">Promosi</option>
-                <option value="otomasi">Otomasi Konten</option>
-                <option value="manajemen">Manajemen Bisnis</option>
-                <option value="lainnya">Lainnya</option>
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">Jenis usaha</label>
-              <select
-                value={payload.business_type}
-                onChange={e => setPayload(prev => ({ ...prev, business_type: e.target.value }))}
-                className="w-full px-3 py-2 border rounded"
-                required
-              >
-                <option value="" disabled>Pilih jenis usaha</option>
-                <option value="kuliner">Kuliner</option>
-                <option value="fashion">Fashion</option>
-                <option value="jasa">Jasa</option>
-                <option value="kerajinan">Kerajinan</option>
-                <option value="lainnya">Lainnya</option>
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">Dari mana tahu UMKM Kits Studio?</label>
-              <select
-                value={payload.info_source}
-                onChange={e => setPayload(prev => ({ ...prev, info_source: e.target.value }))}
-                className="w-full px-3 py-2 border rounded"
-                required
-              >
-                <option value="" disabled>Pilih sumber</option>
-                <option value="media_sosial">Media Sosial</option>
-                <option value="teman">Teman</option>
-                <option value="event">Event/Pameran</option>
-                <option value="internet">Internet</option>
-                <option value="lainnya">Lainnya</option>
-              </select>
-            </div>
-            {error && <p className="text-sm text-rose-500">{error}</p>}
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowOnboarding(false)}
-                className="rounded-md border px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
-              >
-                Lewati
-              </button>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isPending ? "Menyimpan…" : "Simpan jawaban"}
-              </button>
-            </div>
-          </form>
+              {summary.wallet.balance <= 0 && (
+                <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Isi Ulang</button>
+              )}
+            </>
+          ) : (
+            <div className="h-32 bg-slate-700 animate-pulse rounded-md" />
+          )}
         </div>
-      )}
-    </div>
+
+        {/* Pekerjaan minggu ini */}
+        <div className="bg-slate-800 p-6 rounded-lg shadow-soft border border-slate-700">
+          <h3 className="text-lg font-semibold text-slate-300">Pekerjaan minggu ini :</h3>
+          {summary ? (
+            <>
+              <p className="text-5xl font-bold text-white mt-2">{summary.jobs_this_week}</p>
+              <p className="mt-2 text-slate-400 text-sm">Ringkasan otomatis dari pekerjaan AI anda.</p>
+            </>
+          ) : (
+            <div className="h-32 bg-slate-700 animate-pulse rounded-md" />
+          )}
+        </div>
+
+        {/* Total kredit terpakai (minggu ini) */}
+        <div className="bg-slate-800 p-6 rounded-lg shadow-soft border border-slate-700">
+          <h3 className="text-lg font-semibold text-slate-300">Total kredit terpakai :</h3>
+          {summary ? (
+            <>
+              <p className="text-5xl font-bold text-white mt-2">{summary.credits_used_this_week}</p>
+              <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">TOPUP</button>
+            </>
+          ) : (
+            <div className="h-32 bg-slate-700 animate-pulse rounded-md" />
+          )}
+        </div>
+      </div>
+
+      {/* Project anda */}
+      <div className="mt-10">
+        <h2 className="text-2xl font-bold">Project anda</h2>
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+          {projects.length > 0 ? (
+            projects.map((project: Project) => (
+              <div key={project.id} className="bg-slate-800 p-4 rounded-lg shadow-soft border border-slate-700">
+                <img src={project.cover_url || "/placeholder.png"} alt={project.title || "Project cover"} className="w-full h-48 object-cover rounded-md" />
+                <h4 className="text-lg font-semibold text-white mt-3">{project.title}</h4>
+                <div className="mt-4 flex gap-2">
+                  <button className="flex-1 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Bagikan</button>
+                  <button className="flex-1 bg-slate-700 text-white py-2 rounded-md hover:bg-slate-600">Buka Editor</button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-full text-center text-slate-400">No projects found.</div>
+          )}
+        </div>
+        {projectsData?.nextCursor && (
+          <div className="mt-6 text-center">
+            <button className="bg-slate-700 text-white px-4 py-2 rounded-md hover:bg-slate-600">Lihat lebih banyak</button>
+          </div>
+        )}
+      </div>
+
+      {/* Riwayat Credits */}
+      <div className="mt-10">
+        <h2 className="text-2xl font-bold">Riwayat Credits</h2>
+        <div className="mt-6 bg-slate-800 p-6 rounded-lg shadow-soft border border-slate-700">
+          {history.length > 0 ? (
+            history.map((entry: LedgerEntry) => (
+              <div key={entry.id} className="flex justify-between items-center py-2 border-b border-slate-700 last:border-b-0">
+                <div>
+                  <p className="text-white">{entry.reason}</p>
+                  <p className="text-sm text-slate-400">{new Date(entry.created_at).toLocaleString()}</p>
+                </div>
+                <span className={`font-semibold ${entry.change < 0 ? "text-red-500" : "text-green-500"}`}>
+                  {entry.change > 0 ? "+" : ""}{entry.change}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-slate-400">No credit history found.</div>
+          )}
+          <div className="mt-4 text-center">
+            <Link href="/credits" className="text-blue-500 hover:underline">Lihat semua</Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Alat */}
+      <div className="mt-10">
+        <h2 className="text-2xl font-bold">Alat</h2>
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <button className="bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700">Caption AI</button>
+          <button className="bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700">Gambar AI</button>
+          <button className="bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700">Editor</button>
+          <button className="bg-blue-600 text-white py-4 rounded-lg hover:bg-blue-700">Galeri</button>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="mt-10 text-center text-slate-500 text-sm">
+        <p>© {new Date().getFullYear()} UMKM KitStudio. Seluruh hak cipta dilindungi.</p>
+        <p className="mt-2">Dapatkan tips konten <Link href="/subscribe" className="text-blue-500 hover:underline">Langganan</Link></p>
+      </footer>
+
+      <OnboardingModal
+        needsOnboarding={isModalOpen}
+        initialName={profile?.name ?? ""}
+        initialRole={profile?.user_type ?? ""}
+        action={saveOnboarding}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </section>
   );
 }

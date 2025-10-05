@@ -3,19 +3,100 @@
 @tailwind utilities;
 
 :root {
-  color: #0f172a;
-  background-color: #f8fafc;
+  /* tinggi navbar fix */
+  --header-h: 64px;
+  color-scheme: dark;
+  --bg: #0B1220;
+  --panel: #0F172A;
+  --stroke: #1E293B;
+  --muted: #94A3B8;
+  --fg: #CBD5E1;
+  --accent: #3B82F6;
 }
 
-body {
-  min-height: 100vh;
-  color: #0f172a;
-  background-color: #f8fafc;
-  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+html { height: 100%; scrollbar-gutter: stable both-edges; overflow-x: clip; }
+body { min-height: 100%; background: var(--bg); color: var(--fg); font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; overflow-x: clip; }
+body.no-scroll { overflow: hidden; }
+
+/* scroll container untuk halaman landing */
+main.landing {
+  height: 100dvh;           /* gunakan dvh agar stabil di mobile */
+  overflow-y: auto;
+  overflow-x: hidden;       /* cegah overflow horizontal yang menyebabkan garis tipis */
+  scroll-snap-type: y mandatory;
+  padding-inline: 0;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* setiap section = tinggi viewport dikurangi header */
+.section {
+  height: calc(100dvh - var(--header-h));
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  align-items: center;       /* center vertikal kontennya */
+  padding-inline: 0;
+  width: 100%;
 }
+
+/* kartu */
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+  border: 1px solid rgba(148,163,184,.12);
+  border-radius: 1rem;
+  overflow: hidden;          /* hilangkan garis tepi “mengapung” */
+}
+
+/* util */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  /* Gutter responsif + dukungan safe area untuk notch */
+  padding-left: clamp(1rem, 5vw, 3rem);
+  padding-right: clamp(1rem, 5vw, 3rem);
+  padding-left: max(clamp(1rem, 5vw, 3rem), env(safe-area-inset-left));
+  padding-right: max(clamp(1rem, 5vw, 3rem), env(safe-area-inset-right));
+}
+
+/* Accessibility: clear focus rings and placeholder contrast */
+input::placeholder, textarea::placeholder { color: #94a3b8; /* matches --muted */ }
+
+:focus { outline: none; }
+
+/* utility: use brand blue for focus rings */
+.focus-ring:focus { box-shadow: 0 0 0 4px rgba(59,130,246,0.12), 0 0 0 1px rgba(59,130,246,0.25); outline: none; }
+
+@layer utilities { .text-balance { text-wrap: balance; } }
+
+/* === Full-bleed background untuk section === */
+.section--bleed { position: relative; }
+
+.section--bleed::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  z-index: -1;
+  background: var(--bleed-bg, transparent);
+  pointer-events: none;
+}
+
+.bg-hero {
+  --bleed-bg:
+    radial-gradient(1200px 600px at 70% -10%, rgba(59,130,246,.25), transparent 60%),
+    radial-gradient(800px 400px at -10% 20%, rgba(99,102,241,.25), transparent 60%);
+}
+
+/* HEADER selalu di atas & bisa diklik */
+header, header * { pointer-events: auto !important; }
+header { position: fixed; inset: 0 auto auto 0; z-index: 9999 !important; isolation: isolate; }
+
+/* Matikan hitbox semua overlay/pseudo full-bleed */
+.section--bleed::before,
+.hero-spotlight, .hero-grid,
+[data-fx-overlay] { pointer-events: none !important; }
+
+/* Pastikan tidak ada ancestor yang meng-clip header */
+html, body { overflow-x: clip; }

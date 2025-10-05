@@ -5,7 +5,7 @@ import type { Route } from "next";
 
 import { supaServer } from "@/lib/supabase-server";
 
-export async function signUpAction(fd: FormData) {
+export async function signUpAction(fd: FormData): Promise<{ error: string } | void> {
   const full_name = (fd.get("full_name") as string) || "";
   const email = (fd.get("email") as string) || "";
   const password = (fd.get("password") as string) || "";
@@ -18,7 +18,7 @@ export async function signUpAction(fd: FormData) {
     options: { data: { full_name } },
   });
   if (error) {
-    redirect((`/sign-up?error=${encodeURIComponent(error.message)}`) as Route);
+    return { error: error.message };
   }
 
   // Update profiles table dengan full_name

@@ -1,0 +1,49 @@
+/* Tambahkan di app/globals.css atau file CSS terpisah */
+
+/* Tata letak dasar untuk landing page */
+html { scroll-behavior: smooth; }
+body {
+  background-color: #0B1220; /* fallback */
+  background-color: var(--bg, #0B1220);
+  color: var(--fg, #CBD5E1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Container utama untuk scroll-snap */
+main.landing-container {
+  height: 100dvh;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  padding-right: 0; /* Hindari padding yang mengganggu full-bleed */
+  padding-left: 0;
+}
+
+/* Setiap section di dalam container */
+.landing-section {
+  min-height: 100dvh;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: var(--header-h, 64px);
+  padding-bottom: 2rem;
+  width: 100%;
+}
+
+/* Utilitas Full-bleed */
+.full-bleed {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+}
+
+/* Background gradient untuk Hero dan CTA */
+.bg-gradient-hero {
+  background:
+    radial-gradient(1200px 600px at 70% -10%, rgba(59,130,246,.25), transparent 60%),
+    radial-gradient(800px 400px at -10% 20%, rgba(99,102,241,.25), transparent 60%);
+}
