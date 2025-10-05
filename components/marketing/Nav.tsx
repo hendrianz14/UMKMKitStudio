@@ -74,11 +74,14 @@ export default function Nav() {
             </div>
 
             <div className={`hidden md:flex items-center gap-4`}>
-              <Link href="/#features" className="text-sm text-slate-300 hover:text-white">Features</Link>
-              <Link href="/#pricing" className="text-sm text-slate-300 hover:text-white">Pricing</Link>
-              <Link href="/#contact" className="text-sm text-slate-300 hover:text-white">Contact</Link>
-              <DynamicUserMenu />
-            </div>
+  <Link href="/#features" className="text-sm text-slate-300 hover:text-white">Features</Link>
+  <Link href="/#pricing" className="text-sm text-slate-300 hover:text-white">Pricing</Link>
+  <Link href="/#contact" className="text-sm text-slate-300 hover:text-white">Contact</Link>
+  <div className="flex items-center gap-2">
+    <Link href="/sign-in" className="text-sm text-slate-300 hover:text-white">Sign In</Link>
+    <Link href="/sign-up" className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm">Get Started</Link>
+  </div>
+</div>
           </nav>
         </div>
       </header>
@@ -107,8 +110,11 @@ export default function Nav() {
                 <Link href="/#pricing" className="block text-white py-2 border-b border-slate-700">Pricing</Link>
                 <Link href="/#contact" className="block text-white py-2 border-b border-slate-700">Contact</Link>
                 <div className="pt-4">
-                  <DynamicUserMenu />
-                </div>
+  <div className="flex flex-col space-y-2">
+    <Link href="/sign-in" className="text-white py-2">Sign In</Link>
+    <Link href="/sign-up" className="px-4 py-2 rounded-md bg-blue-600 text-white text-center">Get Started</Link>
+  </div>
+</div>
               </div>
             </div>
           </div>

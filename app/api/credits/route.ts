@@ -14,7 +14,7 @@ export async function GET() {
   // Coba view credit_balance dulu
   try {
     const { data: bal, error } = await sb
-      .from("credit_balance")
+      .from("credits_wallet")
       .select("balance")
       .eq("user_id", user.id)
       .maybeSingle();
@@ -27,12 +27,12 @@ export async function GET() {
   // Fallback: jumlahkan ledger
   try {
     const { data: rows } = await sb
-      .from("credit_ledger")
-      .select("delta")
+      .from("credits_ledger")
+      .select("change")
       .eq("user_id", user.id);
 
     if (Array.isArray(rows)) {
-      balance = rows.reduce((acc, r) => acc + (r?.delta ?? 0), 0);
+      balance = rows.reduce((acc, r) => acc + (r?.change ?? 0), 0);
     }
   } catch {}
 

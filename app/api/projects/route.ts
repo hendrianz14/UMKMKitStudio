@@ -3,14 +3,51 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { Database } from "@/lib/database.types";
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+type ProjectItem = {
+  id: string;
+  title: string;
+  cover_url: string | null;
+  updated_at: string;
+  status: Database["public"]["Enums"]["project_status"];
+};
+
 export const dynamic = 'force-dynamic';
+export const revalidate = false;
 
 export async function GET(req: Request) {
+  const cookieStore = cookies();
+  const supabase = createServerClient<Database>(
+    supabaseUrl,
+    supabaseAnonKey,
+    {
+      cookies: {
+        get: (name: string) => cookieStore.get(name)?.value,
+        set: (name: string, value: string, options: object) => {
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // The `cookies().set()` method can only be called in a Server Action or Route Handler.
+            // This error is safe to ignore if you're only reading cookies in a Server Component.
+          }
+        },
+        remove: (name: string, options: object) => {
+          try {
+            cookieStore.set({ name, value: '', ...options });
+          } catch (error) {
+            // The `cookies().set()` method can only be called in a Server Action or Route Handler.
+            // This error is safe to ignore if you're only reading cookies in a Server Component.
+          }
+        },
+      },
+    }
+  );
+
   const { searchParams } = new URL(req.url);
   const limit = parseInt(searchParams.get("limit") || "12");
   const cursor = searchParams.get("cursor");
-
-  const supabase = createServerClient<Database>({ cookies });
 
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -32,14 +69,18 @@ export async function GET(req: Request) {
       query = query.lt("updated_at", cursor);
     }
 
-    const { data: projects, error } = await query;
+    const { data, error } = await query;
+    const projects: ProjectItem[] = (data || []) as ProjectItem[]; // Ensure projects is always an array with correct type
 
     if (error) {
       console.error("Error fetching projects:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const nextCursor = projects && projects.length === limit ? projects[projects.length - 1]?.updated_at : null;
+    const nextCursor =
+      projects.length > 0 && projects.length === limit
+        ? projects[projects.length - 1]?.updated_at
+        : null;
 
     return NextResponse.json({ projects, nextCursor });
   } catch (error) {

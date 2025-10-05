@@ -11,7 +11,7 @@ export default async function HistoryPage() {
   if (!user) redirect("/(auth)/login");
 
   const { data: rows, error } = await sb
-    .from("results")
+    .from("jobs")
     .select("id, created_at, status, output_url")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })

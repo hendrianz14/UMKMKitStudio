@@ -7,7 +7,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data, error } = await sb
-    .from("results")
+    .from("jobs")
     .select("id, created_at, status, output_url")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })

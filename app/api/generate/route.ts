@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     let credits = 1;
     try {
       const { data: bal } = await sb
-        .from("credit_balance")
+        .from("credits_wallet")
         .select("balance")
         .eq("user_id", user.id)
         .maybeSingle();
@@ -33,12 +33,13 @@ export async function POST(req: Request) {
 
     // Buat job queued
     const { data: job, error: insertErr } = await sb
-      .from("results")
+      .from("jobs")
       .insert({
         user_id: user.id,
+        project_id: "placeholder-project-id", // TODO: Determine how to get actual project_id
+        type: type,
         status: "queued",
-        input_name: (file as File).name ?? "image",
-        meta: { type }
+        input_url: (file as File).name ?? "image",
       })
       .select("id")
       .single();
@@ -74,7 +75,7 @@ export async function POST(req: Request) {
     const r = await fetch(webhook, { method: "POST", body: payload });
     if (!r.ok) {
       // Tandai gagal
-      await sb.from("results").update({ status: "error" }).eq("id", job.id);
+      await sb.from("jobs").update({ status: "error" }).eq("id", job.id);
       const t = await r.text().catch(() => "");
       return NextResponse.json({ error: `Webhook gagal: ${r.status} ${t}` }, { status: 502 });
     }

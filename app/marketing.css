@@ -1,0 +1,54 @@
+/* Landing-specific styles */
+
+/* scroll container untuk halaman landing */
+main.landing {
+  height: 100dvh;           /* gunakan dvh agar stabil di mobile */
+  overflow-y: auto;
+  overflow-x: hidden;       /* cegah overflow horizontal yang menyebabkan garis tipis */
+  scroll-snap-type: y mandatory;
+  padding-inline: 0;
+}
+
+/* setiap section = tinggi viewport dikurangi header */
+.section {
+  height: calc(100dvh - var(--header-h));
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  align-items: center;       /* center vertikal kontennya */
+  padding-inline: 0;
+  width: 100%;
+}
+
+/* === Full-bleed background untuk section === */
+.section--bleed { position: relative; }
+
+.section--bleed::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  z-index: -1;
+  background: var(--bleed-bg, transparent);
+  pointer-events: none;
+}
+
+.bg-hero {
+  --bleed-bg:
+    radial-gradient(1200px 600px at 70% -10%, rgba(59,130,246,.25), transparent 60%),
+    radial-gradient(800px 400px at -10% 20%, rgba(99,102,241,.25), transparent 60%);
+}
+
+/* HEADER selalu di atas & bisa diklik */
+header, header * { pointer-events: auto !important; }
+header { position: fixed; inset: 0 auto auto 0; z-index: 9999 !important; isolation: isolate; }
+
+/* Matikan hitbox semua overlay/pseudo full-bleed */
+.section--bleed::before,
+.hero-spotlight, .hero-grid,
+[data-fx-overlay] { pointer-events: none !important; }
+
+/* Pastikan tidak ada ancestor yang meng-clip header */
+html, body { overflow-x: clip; }

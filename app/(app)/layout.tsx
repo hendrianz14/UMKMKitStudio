@@ -1,20 +1,47 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
+import AppSidebar from "@/components/AppSidebar";
+import AppNav from "@/components/AppNav";
+import { AuthProvider } from "@/components/AuthProvider";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export const dynamic = "force-dynamic";
+
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const cookieStore = cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+      },
+    }
+  );
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
   return (
-    <div className="grid min-h-screen grid-cols-1 md:grid-cols-[220px_1fr]">
-      <aside className="hidden md:block border-r bg-white/80 backdrop-blur">
-        <nav className="sticky top-0 p-4 space-y-2">
-          <div className="font-semibold mb-2">UMKM KitStudio</div>
-          <ul className="space-y-1 text-sm">
-            <li><Link className="hover:underline" href="/dashboard">Dashboard</Link></li>
-            <li><Link className="hover:underline" href="/generate">Generate</Link></li>
-            <li><Link className="hover:underline" href="/history">History</Link></li>
-            <li><Link className="hover:underline" href="/settings">Settings</Link></li>
-          </ul>
-        </nav>
-      </aside>
-  <main className="container mx-auto max-w-6xl px-4 md:px-8 py-10">{children}</main>
-    </div>
+    <AuthProvider initialSession={session}>
+      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <AppSidebar />
+        <div className="flex flex-col">
+          <AppNav />
+          {children}
+        </div>
+      </div>
+    </AuthProvider>
   );
 }

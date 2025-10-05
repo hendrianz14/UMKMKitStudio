@@ -7,8 +7,8 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data, error } = await sb
-    .from("results")
-    .select("id, user_id, status, output_url, created_at, meta")
+    .from("jobs")
+    .select("id, user_id, status, output_url, created_at, error_message")
     .eq("id", params.id)
     .maybeSingle();
 
@@ -16,7 +16,5 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (data.user_id !== user.id) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Sertakan meta.error di response jika ada
-  const errorMsg = data?.meta?.error ?? null;
-  return NextResponse.json({ item: { ...data, error: errorMsg } });
+  return NextResponse.json({ item: { ...data, error: data.error_message } });
 }
