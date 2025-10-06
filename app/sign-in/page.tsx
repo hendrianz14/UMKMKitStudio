@@ -39,7 +39,7 @@ export default function SignInPage() {
               type="email"
               required
               placeholder="Email"
-              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-primary focus:ring-primary"
             />
           </div>
           <div>
@@ -50,17 +50,17 @@ export default function SignInPage() {
               type="password"
               required
               placeholder="Password"
-              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-primary focus:ring-primary"
             />
           </div>
           <div className="text-right">
             <Link href="/forgot-password" passHref>
-              <span className="text-sm text-blue-500 hover:underline">Lupa kata sandi?</span>
+              <span className="text-sm text-primary hover:underline">Lupa kata sandi?</span>
             </Link>
           </div>
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+            className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
           >
             Masuk
           </button>

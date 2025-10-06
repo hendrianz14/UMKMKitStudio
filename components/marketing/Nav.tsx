@@ -47,7 +47,7 @@ export default function Nav() {
             <div className="flex items-center gap-3">
               <div className="font-bold text-xl">
                 <span className="text-white">UMKM</span>
-                <span className="text-blue-500">KitStudio</span>
+                <span className="text-primary">KitStudio</span>
               </div>
             </div>
 
@@ -79,7 +79,7 @@ export default function Nav() {
   <Link href="/#contact" className="text-sm text-slate-300 hover:text-white">Contact</Link>
   <div className="flex items-center gap-2">
     <Link href="/sign-in" className="text-sm text-slate-300 hover:text-white">Sign In</Link>
-    <Link href="/sign-up" className="px-4 py-2 rounded-md bg-blue-600 text-white text-sm">Get Started</Link>
+    <Link href="/sign-up" className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm">Get Started</Link>
   </div>
 </div>
           </nav>
@@ -112,7 +112,7 @@ export default function Nav() {
                 <div className="pt-4">
   <div className="flex flex-col space-y-2">
     <Link href="/sign-in" className="text-white py-2">Sign In</Link>
-    <Link href="/sign-up" className="px-4 py-2 rounded-md bg-blue-600 text-white text-center">Get Started</Link>
+    <Link href="/sign-up" className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-center">Get Started</Link>
   </div>
 </div>
               </div>

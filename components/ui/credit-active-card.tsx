@@ -45,7 +45,7 @@ const CreditActiveCard: React.FC<CreditActiveCardProps> = ({
   };
 
   return (
-    <div className="relative p-6 bg-gray-800 rounded-[2rem] border border-gray-700 shadow-lg max-w-sm mx-auto">
+    <div className="relative p-6 bg-zinc-900 rounded-[2rem] border border-zinc-800 shadow-lg max-w-sm mx-auto">
       {/* Soft shadow */}
       <div className="absolute inset-0 rounded-[2rem] shadow-xl opacity-20" style={{ boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)' }}></div>
 
@@ -56,9 +56,9 @@ const CreditActiveCard: React.FC<CreditActiveCardProps> = ({
           <p className="text-white text-5xl font-bold">{balance}</p>
         </div>
         {/* Badge Paket */}
-        <div className="bg-blue-700 text-white text-right px-4 py-2 rounded-full text-sm">
+        <div className="bg-primary text-primary-foreground text-right px-4 py-2 rounded-full text-sm">
           <p className="font-semibold">{getPlanTitle(plan)}</p>
-          <p className="text-xs text-blue-200">Kedaluwarsa pada {formatExpiresAt(expiresAt)}</p>
+          <p className="text-xs text-white/80">Kedaluwarsa pada {formatExpiresAt(expiresAt)}</p>
         </div>
       </div>
 
@@ -80,7 +80,7 @@ const CreditActiveCard: React.FC<CreditActiveCardProps> = ({
           </div>
         </div>
         {/* Decorative line/curve (optional) */}
-        <div className="absolute bottom-0 left-0 w-1/4 h-1 bg-gradient-to-r from-blue-500 to-transparent rounded-br-xl"></div>
+        <div className="absolute bottom-0 left-0 w-1/4 h-1 bg-gradient-to-r from-primary/60 to-transparent rounded-br-xl"></div>
       </div>
     </div>
   );

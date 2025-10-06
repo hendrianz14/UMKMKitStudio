@@ -8,16 +8,16 @@
   color-scheme: dark;
 
   /* Background */
-  --bg-start: 218 35% 9%;
-  --bg-end: 218 40% 11%;
+  --bg-start: 220 15% 7%;
+  --bg-end: 220 12% 11%;
 
   /* Panel */
-  --panel-bg: 218 38% 13%;
-  --panel-border: 0 0% 100% / 0.08;
+  --panel-bg: 220 18% 15%;
+  --panel-border: 220 10% 28% / 0.16;
 
-  /* Accent Blue */
-  --accent-start: 217 91% 60%;
-  --accent-end: 239 82% 67%;
+  /* Accent */
+  --accent-start: 220 12% 48%;
+  --accent-end: 220 10% 38%;
 
   /* Text */
   --text-default: 210 17% 91%; /* Judul */
@@ -79,8 +79,8 @@
 html { height: 100%; scrollbar-gutter: stable both-edges; overflow-x: clip; }
 body {
   min-height: 100%;
-  background: radial-gradient(ellipse at top, var(--bg-start), var(--bg-end));
-  color: var(--text-default);
+  background: radial-gradient(ellipse at top, hsl(var(--bg-start)), hsl(var(--bg-end)));
+  color: hsl(var(--text-default));
   font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   overflow-x: clip;
 }
@@ -88,8 +88,8 @@ body.no-scroll { overflow: hidden; }
 
 /* kartu */
 .card {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
+  background: hsl(var(--panel-bg));
+  border: 1px solid hsl(var(--panel-border));
   border-radius: 16px; /* Using 16px as a default, can be overridden by Tailwind classes */
   overflow: hidden;          /* hilangkan garis tepi “mengapung” */
 }
@@ -107,11 +107,15 @@ body.no-scroll { overflow: hidden; }
 }
 
 /* Accessibility: clear focus rings and placeholder contrast */
-input::placeholder, textarea::placeholder { color: var(--text-secondary); }
+input::placeholder, textarea::placeholder { color: hsl(var(--text-secondary)); }
 
 :focus { outline: none; }
 
-/* utility: use brand blue for focus rings */
-.focus-ring:focus { box-shadow: 0 0 0 4px rgba(59,130,246,0.12), 0 0 0 1px rgba(59,130,246,0.25); outline: none; }
+/* utility: neutral focus rings */
+.focus-ring:focus {
+  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.12), 0 0 0 1px rgba(148, 163, 184, 0.25);
+  outline: none;
+}
 
 @layer utilities { .text-balance { text-wrap: balance; } }
+

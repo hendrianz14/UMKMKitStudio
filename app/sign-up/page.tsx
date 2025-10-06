@@ -59,7 +59,7 @@ export default function SignUpPage() {
               name="full_name"
               required
               placeholder="Nama lengkap"
-              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-primary focus:ring-primary"
             />
           </div>
           <div>
@@ -70,7 +70,7 @@ export default function SignUpPage() {
               type="email"
               required
               placeholder="Email"
-              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-primary focus:ring-primary"
             />
           </div>
           <div>
@@ -81,7 +81,7 @@ export default function SignUpPage() {
               type="password"
               required
               placeholder="Password"
-              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-primary focus:ring-primary"
             />
           </div>
           <div>
@@ -92,7 +92,7 @@ export default function SignUpPage() {
               type="password"
               required
               placeholder="Konfirmasi Password"
-              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="w-full rounded-md border-slate-700 bg-slate-900 px-4 py-3 text-sm shadow-sm focus:border-primary focus:ring-primary"
             />
           </div>
           <div className="flex items-center space-x-2">
@@ -101,15 +101,15 @@ export default function SignUpPage() {
               name="agreement"
               type="checkbox"
               required
-              className="h-4 w-4 text-blue-600 border-slate-700 rounded focus:ring-blue-500"
+              className="h-4 w-4 text-primary border-slate-700 rounded focus:ring-primary"
             />
             <label htmlFor="agreement" className="text-sm text-slate-400">
-              Saya menyetujui <Link href="/terms" className="text-blue-500 hover:underline">Syarat & Ketentuan</Link>
+              Saya menyetujui <Link href="/terms" className="text-primary hover:underline">Syarat & Ketentuan</Link>
             </label>
           </div>
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
             {isLoading ? "Membuat akun..." : "Buat akun"}

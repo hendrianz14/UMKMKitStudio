@@ -7,16 +7,16 @@
   color-scheme: dark;
 
   /* Background */
-  --bg-start: #0a0a0a;
-  --bg-end: #1a1a1a;
+  --bg-start: #0b0b0b;
+  --bg-end: #151515;
 
   /* Panel */
-  --panel-bg: #1f1f1f;
-  --panel-border: #333333;
+  --panel-bg: #202020;
+  --panel-border: #2f2f2f;
 
-  /* Accent Blue */
-  --accent-start: #3b82f6;
-  --accent-end: #6366f1;
+  /* Accent */
+  --accent-start: #7a7a7a;
+  --accent-end: #666666;
 
   /* Text */
   --text-default: #f2f2f2;
@@ -105,7 +105,7 @@ textarea::placeholder {
 }
 
 .focus-ring:focus {
-  box-shadow: 0 0 0 4px hsla(var(--accent-start), 0.12), 0 0 0 1px hsla(var(--accent-start), 0.25);
+  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.12), 0 0 0 1px rgba(148, 163, 184, 0.25);
   outline: none;
 }
 

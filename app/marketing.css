@@ -37,8 +37,8 @@ main.landing {
 
 .bg-hero {
   --bleed-bg:
-    radial-gradient(1200px 600px at 70% -10%, rgba(59,130,246,.25), transparent 60%),
-    radial-gradient(800px 400px at -10% 20%, rgba(99,102,241,.25), transparent 60%);
+    radial-gradient(1200px 600px at 70% -10%, rgba(148, 163, 184, 0.22), transparent 60%),
+    radial-gradient(800px 400px at -10% 20%, rgba(113, 122, 131, 0.2), transparent 60%);
 }
 
 /* HEADER selalu di atas & bisa diklik */

@@ -25,8 +25,8 @@ cancelAnimationFrame(raf);
 }, []);
 return (
 <div ref={ref} className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-<div className="absolute -left-24 -top-24 h-[50vmin] w-[50vmin] rounded-full bg-[#3B82F6]/25 blur-3xl animate-float" />
-<div className="absolute right-0 top-1/3 h-[40vmin] w-[40vmin] rounded-full bg-[#6366F1]/25 blur-3xl animate-float-delayed" />
+<div className="absolute -left-24 -top-24 h-[50vmin] w-[50vmin] rounded-full bg-primary/20 blur-3xl animate-float" />
+<div className="absolute right-0 top-1/3 h-[40vmin] w-[40vmin] rounded-full bg-primary/10 blur-3xl animate-float-delayed" />
 <div className="hero-spotlight" />
 <div className="hero-grid" />
 </div>

@@ -17,7 +17,7 @@ export default function Page(){
             transition={{ duration: 0.5 }}
           >
             <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white leading-tight max-w-[20ch] mx-auto">
-              UMKM <span className="text-[#3B82F6]">KitStudio</span>
+              UMKM <span className="text-primary">KitStudio</span>
             </h1>
             <p className="mt-5 text-lg md:text-xl text-slate-300 mx-auto max-w-[68ch]">
               Ubah foto produk biasa menjadi <span className="text-white">materi iklan profesional</span> dalam hitungan detik.
@@ -26,7 +26,7 @@ export default function Page(){
             <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center rounded-xl px-6 py-3 bg-[#3B82F6] text-white font-medium hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                className="inline-flex items-center justify-center rounded-xl px-6 py-3 bg-primary text-primary-foreground font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 Coba sekarang
               </Link>
@@ -48,7 +48,7 @@ export default function Page(){
           <div className="grid md:grid-cols-2 gap-10">
             <div className="card p-6">
               <p className="text-slate-400 text-sm mb-2">Live preview</p>
-              <div className="aspect-video rounded-xl bg-gradient-to-br from-brand-blue/30 to-brand-blue2/30"></div>
+              <div className="aspect-video rounded-xl bg-gradient-to-br from-primary/20 to-primary/5"></div>
             </div>
             <div className="self-center">
               <h3 className="text-2xl md:text-3xl font-bold text-white">AI-generated product image + template</h3>
@@ -80,10 +80,10 @@ export default function Page(){
               {name:"Pro",desc:"For power users"},
               {name:"Enterprise",desc:"Custom plans"}
             ].map((p,i)=>(
-              <div key={p.name} className={`card p-6 ${i===1?"ring-1 ring-brand-blue/50":""}`}>
+              <div key={p.name} className={`card p-6 ${i===1?"ring-1 ring-primary/40":""}`}>
                 <div className="text-xl text-white font-semibold">{p.name}</div>
                 <p className="text-slate-400 mt-2">{p.desc}</p>
-                <button className="mt-5 px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-brand-blue/50">Choose</button>
+                <button className="mt-5 px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:border-primary/40">Choose</button>
               </div>
             ))}
           </div>
@@ -96,7 +96,7 @@ export default function Page(){
     <div className="max-w-6xl mx-auto px-6 text-center">
       <h3 className="text-3xl md:text-4xl font-bold text-white">Ready to start?</h3>
       <p className="mt-2 text-slate-300">Sign up and try with starter credits.</p>
-      <a href="/get-started" className="inline-block mt-6 px-6 py-3 rounded-xl bg-brand-blue text-white hover:shadow-glow">Get Started</a>
+      <a href="/get-started" className="inline-block mt-6 px-6 py-3 rounded-xl bg-primary text-primary-foreground hover:shadow-glow">Get Started</a>
       <div className="mt-10 text-xs text-slate-500">© YEAR UMKM KitStudio • Terms • Privacy</div>
     </div>
   </Section>

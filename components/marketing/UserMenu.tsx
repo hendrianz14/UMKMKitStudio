@@ -24,7 +24,7 @@ export default function UserMenu() {
         <Link href="/sign-in" className="text-sm text-slate-300 hover:text-white border border-slate-700 rounded-md px-4 py-2">
           Masuk
         </Link>
-        <Link href="/sign-up" className="inline-flex items-center rounded-md bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-2 text-sm font-medium shadow">
+        <Link href="/sign-up" className="inline-flex items-center rounded-md bg-gradient-to-r from-white/15 to-white/5 px-4 py-2 text-sm font-medium text-white shadow">
           Get Started
         </Link>
       </div>
@@ -93,7 +93,7 @@ export default function UserMenu() {
             </svg>
           </button>
           <div className="p-2">
-            <button className="w-full text-center rounded-md bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-2 text-sm font-medium text-white shadow">
+            <button className="w-full text-center rounded-md bg-gradient-to-r from-white/15 to-white/5 px-4 py-2 text-sm font-medium text-white shadow">
               Upgrade to Pro
             </button>
           </div>
