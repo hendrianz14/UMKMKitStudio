@@ -3,8 +3,9 @@
 import { User } from "@supabase/supabase-js";
 import { Database } from "@/lib/database.types";
 import OnboardingModal from "@/components/onboarding-modal";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
+import useSWRInfinite from "swr/infinite";
 import Link from "next/link";
 import { Activity, ArrowUpRight, CreditCard, Users } from "lucide-react";
 
@@ -35,6 +36,13 @@ type Wallet = Database['public']['Tables']['credits_wallet']['Row'];
 type LedgerEntry = Database['public']['Tables']['credits_ledger']['Row'];
 type Project = Database['public']['Tables']['projects']['Row'];
 
+type ProjectsResponse = {
+  projects: Project[];
+  nextCursor: string | null;
+};
+
+const PROJECTS_PAGE_SIZE = 12;
+
 interface DashboardSummary {
   wallet: Wallet | null;
   jobs_this_week: number;
@@ -64,6 +72,7 @@ export default function DashboardClient({
   initialHistory,
 }: DashboardClientProps) {
   const [isModalOpen, setIsModalOpen] = useState(needsOnboarding);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   useEffect(() => {
     setIsModalOpen(needsOnboarding);
@@ -78,6 +87,74 @@ export default function DashboardClient({
     fallbackData: { history: initialHistory },
     revalidateOnMount: true,
   });
+
+  const {
+    data: projectPages,
+    setSize: setProjectPageCount,
+    isValidating: isProjectsValidating,
+  } = useSWRInfinite<ProjectsResponse>(
+    (index, previousPageData) => {
+      if (previousPageData && !previousPageData.nextCursor) {
+        return null;
+      }
+
+      const cursor = index === 0 ? null : previousPageData?.nextCursor ?? null;
+
+      const searchParams = new URLSearchParams({ limit: PROJECTS_PAGE_SIZE.toString() });
+      if (cursor) {
+        searchParams.set('cursor', cursor);
+      }
+
+      return `/api/projects?${searchParams.toString()}`;
+    },
+    fetcher,
+    {
+      fallbackData: [
+        {
+          projects: initialProjects,
+          nextCursor:
+            initialProjects.length === PROJECTS_PAGE_SIZE
+              ? initialProjects[initialProjects.length - 1]?.updated_at ?? null
+              : null,
+        },
+      ],
+      revalidateOnMount: true,
+    }
+  );
+
+  const projects = useMemo(() => {
+    if (!projectPages) {
+      return initialProjects;
+    }
+
+    const projectMap = new Map<string, Project>();
+
+    for (const page of projectPages) {
+      for (const project of page.projects) {
+        if (!projectMap.has(project.id)) {
+          projectMap.set(project.id, project);
+        }
+      }
+    }
+
+    return Array.from(projectMap.values());
+  }, [projectPages, initialProjects]);
+
+  const lastPage = projectPages ? projectPages[projectPages.length - 1] : undefined;
+  const isReachingEnd = !!lastPage && !lastPage.nextCursor;
+
+  const handleLoadMore = async () => {
+    if (isLoadingMore || isReachingEnd) {
+      return;
+    }
+
+    setIsLoadingMore(true);
+    try {
+      await setProjectPageCount((current) => current + 1);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const shouldShowStatSkeleton = !summary && isSummaryValidating;
 
@@ -174,28 +251,70 @@ export default function DashboardClient({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {initialProjects.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell>
-                      <div className="font-medium">{project.title}</div>
-                    </TableCell>
-                    <TableCell className="hidden xl:table-column">
-                      <Badge className="text-xs" variant="outline">
-                        {project.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell lg:hidden xl:table-column">
-                      {new Date(project.updated_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button asChild size="sm">
-                        <Link href={`/editor/${project.id}`}>Open</Link>
-                      </Button>
+                {projects.length > 0 &&
+                  projects.map((project) => (
+                    <TableRow key={project.id}>
+                      <TableCell>
+                        <div className="font-medium">{project.title}</div>
+                      </TableCell>
+                      <TableCell className="hidden xl:table-column">
+                        <Badge className="text-xs" variant="outline">
+                          {project.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell lg:hidden xl:table-column">
+                        {new Date(project.updated_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button asChild size="sm">
+                          <Link href={`/editor/${project.id}`}>Open</Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                {(isLoadingMore || (isProjectsValidating && projects.length === 0)) &&
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <TableRow key={`project-skeleton-${index}`}>
+                      <TableCell>
+                        <Skeleton className="h-5 w-40" />
+                      </TableCell>
+                      <TableCell className="hidden xl:table-column">
+                        <Skeleton className="h-5 w-20" />
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell lg:hidden xl:table-column">
+                        <Skeleton className="h-5 w-24" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Skeleton className="ml-auto h-8 w-16" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                {projects.length === 0 && !isLoadingMore && !isProjectsValidating && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="py-10 text-center">
+                      <div className="flex flex-col items-center gap-4">
+                        <div>
+                          <p className="text-sm font-medium">You don&apos;t have any projects yet.</p>
+                          <p className="text-sm text-muted-foreground">
+                            Start your first project to see it appear in this list.
+                          </p>
+                        </div>
+                        <Button asChild size="sm">
+                          <Link href="/generate">Create your first project</Link>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
+            {!isReachingEnd && projects.length > 0 && (
+              <div className="mt-4 flex justify-center">
+                <Button onClick={handleLoadMore} disabled={isLoadingMore} variant="outline">
+                  {isLoadingMore ? "Loading..." : "Load more projects"}
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
         <Card>
